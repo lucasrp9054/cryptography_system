@@ -15,5 +15,5 @@ The goal of this project is to develop an encryption system involving both symme
   - In addition to the message, the user must provide the key (in the case of RSA, only the two prime numbers needed for key generation can be provided).
 
 ## Development:
-The algorithm will be developed using the Java programming language.
+The algorithm will be developed using the Python programming language.
 
