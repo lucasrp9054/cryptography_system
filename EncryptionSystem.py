@@ -3,12 +3,15 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
+import math
+import random
+
 
 import base64
 
 class EncryptionSystem:
 
-    #For Symmetric and Asymetric
+    # For Symmetric and Asymmetric
     saved_phrase = ''  # Initialized as an empty string
     saved_key = ''     # Initialized as an empty string
     rollback = 0       # Initialized as 0
@@ -200,20 +203,12 @@ class EncryptionSystem:
         ciphertext = base64.b64decode(encoded_ciphertext)
 
         # Create a TripleDES cipher with CBC mode to decrypt the message.
-        # TripleDES (also known as DESede) is a symmetric encryption algorithm that encrypts data in blocks of 64 bits.
-        # CBC (Cipher Block Chaining) is a mode of operation for block ciphers, which introduces an Initialization Vector (IV) to each block of plaintext
-        # before encryption to ensure that identical plaintext blocks are not encrypted to the same ciphertext blocks.
         cipher = Cipher(algorithms.TripleDES(key), modes.CBC(b'\0' * 8), backend=default_backend())
 
         # Create a decryptor object using the cipher to perform the decryption process.
-        # The decryptor object is responsible for applying the decryption algorithm (TripleDES in CBC mode) to the input data (ciphertext).
-        # It handles the decryption of the data chunk by chunk and manages any necessary padding and finalization steps.
         decryptor = cipher.decryptor()
 
         # Decrypt the ciphertext using the decryptor object.
-        # The decryptor object applies the TripleDES decryption algorithm in CBC mode to the input ciphertext.
-        # The update() method processes the ciphertext in chunks and returns the intermediate plaintext.
-        # The finalize() method completes the decryption process and returns the remaining plaintext.
         plaintext = decryptor.update(ciphertext) + decryptor.finalize()
 
         # Print the decrypted plaintext
@@ -229,11 +224,7 @@ class EncryptionSystem:
         print("Enter two prime numbers to generate RSA keys:")
         p = EncryptionSystem.get_prime_number()
         q = EncryptionSystem.get_prime_number()
-        
         # Check if p and q are valid prime numbers
-        if not EncryptionSystem.is_prime(p) or not EncryptionSystem.is_prime(q):
-            print("Invalid prime numbers. Please choose valid prime numbers.")
-            return
         
         # Generate RSA key
         key = EncryptionSystem.rsa_key_generation(p, q)
@@ -267,7 +258,6 @@ class EncryptionSystem:
             else:
                 print("Please choose between [Y] or [N].")
 
-
     @staticmethod
     def asymmetric_decryption():
         # Handle asymmetric decryption
@@ -287,7 +277,7 @@ class EncryptionSystem:
 
         else:
             print("As we already have both variables:\n")
-            print(f"Key = {EncryptionSystem.saved_key.decode()}")
+            print(f"Key = {EncryptionSystem.saved_key}")
             print(f"Cipher phrase = {EncryptionSystem.saved_phrase}")
             print("\nLet's proceed...\n")
             key = EncryptionSystem.saved_key
@@ -301,8 +291,6 @@ class EncryptionSystem:
 
         return 0
 
-    
-    
     @staticmethod
     def get_prime_number():
         """
@@ -336,22 +324,16 @@ class EncryptionSystem:
             bool: True if the number is prime, False otherwise.
         """
         if n <= 1:
-            # If the number is less than or equal to 1, it is not prime
             return False
         elif n <= 3:
-            # If the number is 2 or 3, it is prime
             return True
         elif n % 2 == 0 or n % 3 == 0:
-            # If the number is divisible by 2 or 3, it is not prime
             return False
         i = 5
         while i * i <= n:
-            # Loop through potential factors of the number starting from 5
             if n % i == 0 or n % (i + 2) == 0:
-                # If the number is divisible by any of these factors, it is not prime
                 return False
             i += 6
-        # If no factors are found, the number is prime
         return True
     
     @staticmethod
@@ -366,20 +348,22 @@ class EncryptionSystem:
         Returns:
         - RSA key object.
         """
-        # Calculate modulus and totient
+        # Calcula o módulo e a totiente
         modulus = p * q
         totient = (p - 1) * (q - 1)
         
-        # Choose public exponent (usually 65537 according to internet forums)
-        public_exponent = 65537
+        # Escolhe o expoente público (começamos com 3 para fins de demonstração)
+        public_exponent = 3
         
-        # Calculate private exponent
+        # Calcula o expoente privado
         private_exponent = pow(public_exponent, -1, totient)
         
-        # Construct RSA key
+        # Constrói a chave RSA
         key = RSA.construct((modulus, public_exponent, private_exponent, p, q))
         
         return key
+
+
 
 
 
@@ -422,7 +406,6 @@ class EncryptionSystem:
         decrypted_message = cipher_rsa.decrypt(encrypted_message)
         
         return decrypted_message.decode()
-
 
 
 if __name__ == "__main__":
