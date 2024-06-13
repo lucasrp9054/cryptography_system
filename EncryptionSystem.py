@@ -11,10 +11,6 @@ from cryptography.hazmat.backends import default_backend
 import base64
 
 class EncryptionSystem:
-
-    import os
-
-class EncryptionSystem:
     # For Symmetric
     saved_single_key = ''     # Initialized as an empty string
 
@@ -53,22 +49,38 @@ class EncryptionSystem:
 
     @staticmethod
     def get_user_action():
-        # Get the user's choice to encrypt or decrypt
-        print("Welcome to the Encryption System!")
+        # Print a welcome message
+        print("\nWelcome to the Encryption System!")
+        
+        # Loop until a valid choice is made
         while True:
-            choice = input("Would you like to encrypt (E) or decrypt (D) a message? ").upper()
+            # Display options to the user
+            print("\n\tMenu\n\n[E] - Encrypt \n[D] - Decrypt \n[L] - Leave\n")
+            
+            # Get the user's choice and convert to uppercase
+            choice = input("Choice: ").upper()
+            
+            # Handle the user's choice
             if choice == "E":
                 return EncryptionSystem.choose_encryption_method()
             elif choice == "D":
                 return EncryptionSystem.choose_decryption_method()
+            elif choice == "L":
+                break  # Exit the loop to leave the system
             else:
                 print("Invalid choice. Please enter 'E' for encryption or 'D' for decryption.")
 
     @staticmethod
     def get_user_choice():
+        EncryptionSystem.clear_screen()
         # Get the user's choice of encryption method
-        print('\nChoose the method to use:')
-        print('1. Symmetric\n2. Asymmetric\n3. More info')
+        print("""
+        Choose the method to use:\n
+        1. Symmetric
+        2. Asymmetric
+        3. More info
+        """)
+
         number = input('Choice: ')
         try:
             return int(number)
@@ -146,7 +158,7 @@ class EncryptionSystem:
         key = ''                 # Initialize the variable outside the if block
 
         if EncryptionSystem.rollback == 0:
-            print("You chose symmetric encryption.")
+            print("\tWelcome to symmetric encryption.\n")
 
             while True:
                 # Get the key from the user and convert it to bytes
@@ -183,7 +195,7 @@ class EncryptionSystem:
 
         # Ask if the user wants to save the message and key
         while True:
-            print(f"\nWould you like to save the message: {encrypted_message} and the key: {key} to apply the decryption method?")
+            print(f"\nWould you like to save the message: {encrypted_message} and the key: {key.decode()} to apply the decryption method?")
             choice = input("Yes [Y] or No [N]? ").upper()
             if choice == 'Y':
                 EncryptionSystem.saved_phrase = encrypted_message
@@ -221,10 +233,14 @@ class EncryptionSystem:
             encrypted_message = input("Please enter the encrypted message: ")
 
         else: #If the user have chosen to save his previous encryption
-            print("As we already have both variables:\n")
-            print(f"Key = {EncryptionSystem.saved_single_key.decode()}")
-            print(f"Cipher phrase = {EncryptionSystem.saved_phrase}")
-            print("\nLet's proceed...\n")
+            print(f"""
+            As we already have both variables:
+            Key = {EncryptionSystem.saved_single_key.decode()}
+            Cipher phrase = {EncryptionSystem.saved_phrase}
+
+            Let's proceed...
+            """)
+
             key = EncryptionSystem.saved_single_key
             encrypted_message = EncryptionSystem.saved_phrase
             
@@ -283,10 +299,13 @@ class EncryptionSystem:
             encrypted_message = [pow(ord(char), e, n) for char in message]
 
             # Display generated keys and encrypted message
-            print("Public Key:", public_key)
-            print("Private Key:", private_key)
-            print("Original message:", message)
-            print("Encrypted message:", encrypted_message)
+            print(f"""
+            Public Key: {public_key}
+            Private Key: {private_key}
+            Original message: {message}
+            Encrypted message: {encrypted_message}
+            """)
+
 
             # Ask user to save encryption details for decryption
             while True:
@@ -359,15 +378,21 @@ class EncryptionSystem:
 
         else:
             # If a private key is saved, continue with saved details
-            print("As we already have both variables:\n")
-            print(f"P = {EncryptionSystem.saved_p}")
-            print(f"Q = {EncryptionSystem.saved_q}\n")
+            print(f"""
+            As we already have both variables:
 
-            print("Leading us to:\n")
-            print(f"Public Key = {EncryptionSystem.saved_public_key}")
-            print(f"Private Key = {EncryptionSystem.saved_private_key}")
-            print(f"Encrypted phrase = {EncryptionSystem.saved_phrase}")
-            print("\nLet's proceed...\n")
+            P = {EncryptionSystem.saved_p}
+            Q = {EncryptionSystem.saved_q}
+
+            Leading us to:
+
+            Public Key = {EncryptionSystem.saved_public_key}
+            Private Key = {EncryptionSystem.saved_private_key}
+            Encrypted phrase = {EncryptionSystem.saved_phrase}
+
+            Let's proceed...
+            """)
+
 
             # Retrieve saved encryption details
             encrypted_message = EncryptionSystem.saved_phrase
