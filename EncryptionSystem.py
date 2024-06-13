@@ -1,20 +1,32 @@
+# Importing os module for operating system functionalities
 import os
+
+# Importing necessary components from cryptography library for encryption
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+
+# Importing default_backend from cryptography backend for cryptographic operations
 from cryptography.hazmat.backends import default_backend
-from Crypto.PublicKey import RSA
-from Crypto.Cipher import PKCS1_OAEP
-import math
-import random
 
-
+# Importing base64 module for base64 encoding and decoding functionalities
 import base64
 
 class EncryptionSystem:
 
+    import os
+
+class EncryptionSystem:
+    # For Symmetric
+    saved_single_key = ''     # Initialized as an empty string
+
+    # For Asymmetric
+    saved_public_key = ''     # Initialized as an empty string
+    saved_private_key = ''    # Initialized as an empty string
+    saved_p = 0               # Initialized as 0
+    saved_q = 0               # Initialized as 0
+
     # For Symmetric and Asymmetric
-    saved_phrase = ''  # Initialized as an empty string
-    saved_key = ''     # Initialized as an empty string
-    rollback = 0       # Initialized as 0
+    rollback = 0              # Initialized as 0
+    saved_phrase = ''         # Initialized as an empty string
 
     @staticmethod
     def main():
@@ -27,21 +39,34 @@ class EncryptionSystem:
         os.system('cls' if os.name == 'nt' else 'clear')
 
     @staticmethod
+    def restart_global_variables():
+
+        saved_single_key = ''     
+        saved_public_key = ''     
+        saved_private_key = ''    
+        saved_p = 0               
+        saved_q = 0              
+        rollback = 0              
+        saved_phrase = ''         
+
+        return 0
+
+    @staticmethod
     def get_user_action():
-        # Get the user's choice
+        # Get the user's choice to encrypt or decrypt
         print("Welcome to the Encryption System!")
-        choice = input("Would you like to encrypt (E) or decrypt (D) a message? ").upper()
         while True:
+            choice = input("Would you like to encrypt (E) or decrypt (D) a message? ").upper()
             if choice == "E":
                 return EncryptionSystem.choose_encryption_method()
             elif choice == "D":
                 return EncryptionSystem.choose_decryption_method()
             else:
-                print("Invalid choice.")
+                print("Invalid choice. Please enter 'E' for encryption or 'D' for decryption.")
 
     @staticmethod
     def get_user_choice():
-        # Get the user's choice
+        # Get the user's choice of encryption method
         print('\nChoose the method to use:')
         print('1. Symmetric\n2. Asymmetric\n3. More info')
         number = input('Choice: ')
@@ -108,15 +133,16 @@ class EncryptionSystem:
             "- Security: Public key is shared, private key is secret.\n"
             "In short: Public key for encryption, private key for decryption.\n"
         )
+
         print(info_text)
         input('Press ENTER to return...\n')
         EncryptionSystem.clear_screen()
-        
+
     @staticmethod
     def symmetric_encryption():
         # Handle symmetric encryption using TripleDES algorithm
         EncryptionSystem.clear_screen()
-        encoded_ciphertext = ''  # Initialize the variable outside the if block
+        encrypted_message = ''  # Initialize the variable outside the if block
         key = ''                 # Initialize the variable outside the if block
 
         if EncryptionSystem.rollback == 0:
@@ -150,35 +176,37 @@ class EncryptionSystem:
             ciphertext = encryptor.update(message) + encryptor.finalize()
 
             # Encode the ciphertext using base64 encoding
-            encoded_ciphertext = base64.b64encode(ciphertext).decode()
+            encrypted_message = base64.b64encode(ciphertext).decode()
 
             # Print the encrypted message
-            print("Encrypted message:", encoded_ciphertext)
+            print("Encrypted message:", encrypted_message)
 
         # Ask if the user wants to save the message and key
         while True:
-            print(f"\nWould you like to save the message: {encoded_ciphertext} and the key: {key} to apply the decryption method?")
-            choice = input("Yes [Y] or No [N]? ")
+            print(f"\nWould you like to save the message: {encrypted_message} and the key: {key} to apply the decryption method?")
+            choice = input("Yes [Y] or No [N]? ").upper()
             if choice == 'Y':
-                EncryptionSystem.saved_phrase = encoded_ciphertext
-                EncryptionSystem.saved_key = key
+                EncryptionSystem.saved_phrase = encrypted_message
+                EncryptionSystem.saved_single_key = key
                 EncryptionSystem.rollback = 0
                 EncryptionSystem.symmetric_decryption()
                 break  # Exit the loop if the user chooses to save
             elif choice == 'N':
                 EncryptionSystem.saved_phrase = ''
-                EncryptionSystem.saved_key = ''
+                EncryptionSystem.saved_single_key = ''
                 EncryptionSystem.rollback = 0
+                EncryptionSystem.clear_screen()
                 EncryptionSystem.get_user_action()
                 break  # Exit the loop if the user chooses not to save
             else:
+                EncryptionSystem.rollback = 1
                 print("Please choose between [Y] or [N].")
 
     @staticmethod
     def symmetric_decryption():
         # Handle symmetric decryption using TripleDES algorithm
         EncryptionSystem.clear_screen()
-        if EncryptionSystem.saved_key == '':
+        if EncryptionSystem.saved_single_key == '':
             print("You chose symmetric decryption.")
             # Get the key from the user and convert it to bytes
             while True:
@@ -189,18 +217,19 @@ class EncryptionSystem:
                 else:
                     break  # Exit the loop if the key is valid
 
-            # Get the message to be decrypted from the user and convert it to bytes
-            encoded_ciphertext = input("Please enter the encrypted message: ")
+            # Get the encrypted message from the user
+            encrypted_message = input("Please enter the encrypted message: ")
 
-        else:
+        else: #If the user have chosen to save his previous encryption
             print("As we already have both variables:\n")
-            print(f"Key = {EncryptionSystem.saved_key.decode()}")
+            print(f"Key = {EncryptionSystem.saved_single_key.decode()}")
             print(f"Cipher phrase = {EncryptionSystem.saved_phrase}")
             print("\nLet's proceed...\n")
-            key = EncryptionSystem.saved_key
-            encoded_ciphertext = EncryptionSystem.saved_phrase
-
-        ciphertext = base64.b64decode(encoded_ciphertext)
+            key = EncryptionSystem.saved_single_key
+            encrypted_message = EncryptionSystem.saved_phrase
+            
+        # Decode the base64-encoded ciphertext
+        ciphertext = base64.b64decode(encrypted_message)
 
         # Create a TripleDES cipher with CBC mode to decrypt the message.
         cipher = Cipher(algorithms.TripleDES(key), modes.CBC(b'\0' * 8), backend=default_backend())
@@ -214,82 +243,194 @@ class EncryptionSystem:
         # Print the decrypted plaintext
         print("Decrypted message:", plaintext.decode())
 
+        # Prompt the user to continue
+        input('\nPress ENTER to continue...\n')
+
+        # Reset global variables for the next operation
+        EncryptionSystem.restart_global_variables()
+
+        # Return to the main menu
+        EncryptionSystem.get_user_action()
+
     @staticmethod
     def asymmetric_encryption():
-        # Handle asymmetric encryption
+        # Clear the terminal screen
         EncryptionSystem.clear_screen()
-        print("You chose asymmetric encryption.")
 
-        # Prompt the user to enter two prime numbers for RSA key generation
-        print("Enter two prime numbers to generate RSA keys:")
-        p = EncryptionSystem.get_prime_number()
-        q = EncryptionSystem.get_prime_number()
-        # Check if p and q are valid prime numbers
-        
-        # Generate RSA key
-        key = EncryptionSystem.rsa_key_generation(p, q)
-        
-        # Message to encrypt
-        message = input("Please enter the message to be encrypted: ")
-        
-        # Encrypt the message using the RSA key
-        encrypted_message = EncryptionSystem.rsa_asymmetric_encryption(message, key)
-        
-        # Print original and encrypted messages
-        print("Original message:", message)
-        print("Encrypted message:", encrypted_message)
+        if EncryptionSystem.rollback == 0:
+            # Handle asymmetric encryption process
+            print("You chose asymmetric encryption.")
 
-        # Ask if the user wants to save the message and key
-        while True:
-            print(f"\nWould you like to save the encrypted message and the key to apply the decryption method?")
-            choice = input("Yes [Y] or No [N]? ")
-            if choice == 'Y':
-                EncryptionSystem.saved_phrase = encrypted_message
-                EncryptionSystem.saved_key = key
-                EncryptionSystem.rollback = 0
-                EncryptionSystem.asymmetric_decryption()
-                break  # Exit the loop if the user chooses to save
-            elif choice == 'N':
-                EncryptionSystem.saved_phrase = ''
-                EncryptionSystem.saved_key = ''
-                EncryptionSystem.rollback = 0
-                EncryptionSystem.get_user_action()
-                break  # Exit the loop if the user chooses not to save
-            else:
-                print("Please choose between [Y] or [N].")
+            # Prompt the user to enter two prime numbers for RSA key generation
+            print("Enter two prime numbers to generate RSA keys:")
+
+            # Prompt user for prime numbers and save p
+            p = EncryptionSystem.get_prime_number()
+            EncryptionSystem.saved_p = p
+
+            # Prompt user for prime numbers and save q
+            q = EncryptionSystem.get_prime_number()
+            EncryptionSystem.saved_q = q
+
+            # Generate RSA keys
+            public_key, private_key = EncryptionSystem.generate_RSA_keys(p, q)
+
+            # Prompt user for message to encrypt
+            message = input("Please enter the message to be encrypted: ")
+
+            # Encrypt the message using RSA algorithm
+            e, n = public_key
+            encrypted_message = [pow(ord(char), e, n) for char in message]
+
+            # Display generated keys and encrypted message
+            print("Public Key:", public_key)
+            print("Private Key:", private_key)
+            print("Original message:", message)
+            print("Encrypted message:", encrypted_message)
+
+            # Ask user to save encryption details for decryption
+            while True:
+                print(f"\nWould you like to save the message: {encrypted_message} and the p: {p} and q: {q} values to apply the decryption method?")
+                choice = input("Yes [Y] or No [N]? ").upper()
+                if choice == 'Y':
+                    EncryptionSystem.saved_phrase = encrypted_message
+                    EncryptionSystem.saved_private_key = private_key
+                    EncryptionSystem.saved_public_key = public_key
+                    EncryptionSystem.rollback = 0
+                    EncryptionSystem.asymmetric_decryption()
+                    break  # Exit the loop if the user chooses to save
+                elif choice == 'N':
+                    EncryptionSystem.saved_phrase = ''
+                    EncryptionSystem.saved_private_key = 0
+                    EncryptionSystem.saved_public_key = 0
+                    EncryptionSystem.rollback = 0
+                    EncryptionSystem.clear_screen()
+                    EncryptionSystem.get_user_action()
+                    break  # Exit the loop if the user chooses not to save
+                else:
+                    EncryptionSystem.rollback = 1
+                    print("Please choose between [Y] or [N].")
+
+        else:
+            # If rollback is set, continue with saved encryption details
+            while True:
+                print(f"\nWould you like to save the message: {encrypted_message} and the p: {p} and q: {q} values to apply the decryption method?")
+                choice = input("Yes [Y] or No [N]? ")
+                if choice == 'Y':
+                    EncryptionSystem.saved_phrase = encrypted_message
+                    EncryptionSystem.saved_private_key = private_key
+                    EncryptionSystem.saved_public_key = public_key
+                    EncryptionSystem.rollback = 0
+                    EncryptionSystem.asymmetric_decryption()
+                    break  # Exit the loop if the user chooses to save
+                elif choice == 'N':
+                    EncryptionSystem.saved_phrase = ''
+                    EncryptionSystem.saved_private_key = 0
+                    EncryptionSystem.saved_public_key = 0
+                    EncryptionSystem.rollback = 0
+                    EncryptionSystem.get_user_action()
+                    break  # Exit the loop if the user chooses not to save
+                else:
+                    EncryptionSystem.rollback = 1
+                    print("Please choose between [Y] or [N].")
 
     @staticmethod
     def asymmetric_decryption():
-        # Handle asymmetric decryption
+        # Clear the terminal screen
         EncryptionSystem.clear_screen()
 
-        if EncryptionSystem.saved_key == '':
-            # Prompt the user to enter two prime numbers for RSA key generation
-            print("Enter two prime numbers to generate RSA keys:")
+        if EncryptionSystem.saved_private_key == '':
+            # If no private key is saved, prompt the user to enter prime numbers for RSA key generation
+            print("Enter two different prime numbers to generate RSA keys:")
             p = EncryptionSystem.get_prime_number()
-            q = EncryptionSystem.get_prime_number()
-            
-            # Generate RSA key
-            key = EncryptionSystem.rsa_key_generation(p, q)
+            EncryptionSystem.saved_p = p
 
-            # Get the message to be decrypted from the user and convert it to bytes
-            encoded_ciphertext = input("Please enter the encrypted message: ")
+            q = EncryptionSystem.get_prime_number()
+            EncryptionSystem.saved_q = q
+
+            # Prompt user for message to decrypt
+            message = input("Please enter the message to be decrypted: ")
+
+            # Retrieve saved private key and modulus n
+            d, n = EncryptionSystem.saved_private_key
+
+            # Decrypt the message using RSA algorithm
+            decrypted_message = ''.join([chr(pow(char, d, n)) for char in encrypted_message])
 
         else:
+            # If a private key is saved, continue with saved details
             print("As we already have both variables:\n")
-            print(f"Key = {EncryptionSystem.saved_key}")
-            print(f"Cipher phrase = {EncryptionSystem.saved_phrase}")
+            print(f"P = {EncryptionSystem.saved_p}")
+            print(f"Q = {EncryptionSystem.saved_q}\n")
+
+            print("Leading us to:\n")
+            print(f"Public Key = {EncryptionSystem.saved_public_key}")
+            print(f"Private Key = {EncryptionSystem.saved_private_key}")
+            print(f"Encrypted phrase = {EncryptionSystem.saved_phrase}")
             print("\nLet's proceed...\n")
-            key = EncryptionSystem.saved_key
-            encoded_ciphertext = EncryptionSystem.saved_phrase
-        
-        # Decrypt the message using the same RSA key
-        decrypted_message = EncryptionSystem.rsa_asymmetric_decryption(encoded_ciphertext, key)
-        
-        print("Encrypted message:", encoded_ciphertext)
+
+            # Retrieve saved encryption details
+            encrypted_message = EncryptionSystem.saved_phrase
+            d, n = EncryptionSystem.saved_private_key
+
+            # Decrypt the message using RSA algorithm
+            decrypted_chars = [chr(pow(char, d, n)) for char in encrypted_message]
+            decrypted_message = ''.join(decrypted_chars)
+
+        # Display the decrypted message
         print("Decrypted message:", decrypted_message)
 
-        return 0
+        # Prompt the user to continue
+        input('\nPress ENTER to continue...\n')
+
+        # Reset global variables for the next operation
+        EncryptionSystem.restart_global_variables()
+
+        #Clear the terminal
+        EncryptionSystem.clear_screen()
+
+        # Return to the main menu
+        EncryptionSystem.get_user_action()
+
+    @staticmethod
+    def is_prime(n):
+        """
+        Check whether a number is prime.
+
+        Args:
+            n (int): The number to check for primality.
+
+        Returns:
+            bool: True if the number is prime, False otherwise.
+        """
+
+        if n == EncryptionSystem.saved_p:
+            # If n is equal to the previously saved prime (to ensure different primes are used)
+            return False    
+        elif n <= 1:
+            # Numbers less than or equal to 1 are not prime
+            return False
+        elif n == 2:
+            # 2 is the only even prime number
+            return False
+        elif n == 3:
+            # 3 is a prime number
+            return True
+        elif n % 2 == 0 or n % 3 == 0:
+            # Numbers divisible by 2 or 3 (besides 2 and 3 themselves) are not prime
+            return False
+
+        # Check divisibility starting from 5 up to the square root of n
+        i = 5
+        while i * i <= n:
+            if n % i == 0 or n % (i + 2) == 0:
+                # If n is divisible by any number in the form of 6k ± 1, it's not prime
+                return False
+            i += 6
+
+        # If no divisor is found, n is prime
+        return True
+
 
     @staticmethod
     def get_prime_number():
@@ -301,111 +442,103 @@ class EncryptionSystem:
             int: A prime number entered by the user.
         """
         while True:
-            num = input("Please enter a prime number: ")
+            print("""
+        Here are some suggested prime numbers that can be used to generate RSA keys:
+        - 11, 13, 17, 19, 23, 29, 31, 37, 41, 43,
+        - 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, ...
+                Lower values may generate bad results.
+        """)
+            num = input("Please enter a prime number (except 2): ")
             try:
                 num = int(num)
                 if EncryptionSystem.is_prime(num):
-                    EncryptionSystem.clear_screen()
+                    print("Thank you for entering a prime number.\n")
                     return num
                 else:
-                    print("The number you entered is not prime. Please try again.")
-                    input('Press ENTER to continue...\n')
-                    EncryptionSystem.clear_screen()
+                    print("The number you entered is not a prime number or it was outside the expected range.\n Please try again.")
             except ValueError:
                 print("Invalid input. Please enter a valid integer.")
 
-    @staticmethod
-    def is_prime(n):
-        """
-        Function to check whether a number is prime or not.
-        Args:
-            n (int): The number to be checked for primality.
-        Returns:
-            bool: True if the number is prime, False otherwise.
-        """
-        if n <= 1:
-            return False
-        elif n <= 3:
-            return True
-        elif n % 2 == 0 or n % 3 == 0:
-            return False
-        i = 5
-        while i * i <= n:
-            if n % i == 0 or n % (i + 2) == 0:
-                return False
-            i += 6
-        return True
     
     @staticmethod
-    def rsa_key_generation(p, q):
+    def gcd(a,b):
+
         """
-        Generates RSA public and private keys based on two prime numbers.
+        Computes the greatest common divisor of two numbers.
         
         Args:
-        - p (int): First prime number.
-        - q (int): Second prime number.
+            a (int): The first number.
+            b (int): The second number.
         
         Returns:
-        - RSA key object.
+            int: The greatest common divisor of a and b.
         """
-        # Calcula o módulo e a totiente
-        modulus = p * q
-        totient = (p - 1) * (q - 1)
-        
-        # Escolhe o expoente público (começamos com 3 para fins de demonstração)
-        public_exponent = 3
-        
-        # Calcula o expoente privado
-        private_exponent = pow(public_exponent, -1, totient)
-        
-        # Constrói a chave RSA
-        key = RSA.construct((modulus, public_exponent, private_exponent, p, q))
-        
-        return key
-
-
-
-
-
+        while b:
+            a, b = b, a % b
+        return a
+    
     @staticmethod
-    def rsa_asymmetric_encryption(message, key):
-        """
-        Encrypts a message using RSA encryption.
-        
-        Args:
-        - message (str): Message to encrypt.
-        - key (RSA key object): Public or private RSA key.
-        
-        Returns:
-        - bytes: Encrypted message.
-        """
-        # Create RSA cipher object
-        cipher_rsa = PKCS1_OAEP.new(key)
-        
-        # Encrypt the message
-        encrypted_message = cipher_rsa.encrypt(message.encode())
-        
-        return encrypted_message
+    def generate_RSA_keys(p, q):
+        n = p * q
+        phi = (p - 1) * (q - 1)
 
+        # Public exponent (e) selection
+        e = 65537  # Common choice for public exponent (typically a Fermat prime)
+
+        # Ensure e and phi are coprime
+        while EncryptionSystem.gcd(e, phi) != 1:
+            e += 2
+
+        # Private exponent (d) calculation
+        d = EncryptionSystem.modular_inverse(e, phi)
+
+        # Public key (e, n), Private key (d, n)
+        public_key = (e, n)
+        private_key = (d, n)
+
+        return public_key, private_key
+    
     @staticmethod
-    def rsa_asymmetric_decryption(encrypted_message, key):
+    def modular_inverse(e, phi):
         """
-        Decrypts a message using RSA decryption.
+        Computes the modular inverse of e modulo phi.
         
         Args:
-        - encrypted_message (bytes): Encrypted message.
-        - key (RSA key object): Public or private RSA key.
+            e (int): The number to find the inverse of.
+            phi (int): The modulus.
         
         Returns:
-        - str: Decrypted message.
+            int: The modular inverse of e modulo phi.
+        
+        Raises:
+            ValueError: If the modular inverse does not exist.
         """
-        # Create RSA cipher object
-        cipher_rsa = PKCS1_OAEP.new(key)
+
+        gcd, x, _ = EncryptionSystem.extended_gcd(e, phi)
+        if gcd != 1:
+            raise ValueError("The modular inverse does not exist.")
+        return x % phi
+    
+    @staticmethod
+    def extended_gcd(a, b):
+        """
+        Computes the greatest common divisor of a and b,
+        as well as the coefficients of Bézout's identity.
         
-        # Decrypt the message
-        decrypted_message = cipher_rsa.decrypt(encrypted_message)
+        Args:
+            a (int): The first number.
+            b (int): The second number.
         
-        return decrypted_message.decode()
+        Returns:
+            tuple: (gcd, x, y) where gcd is the greatest common divisor
+                   and x, y are the coefficients of Bézout's identity.
+        """
+        if b == 0:
+            return a, 1, 0
+        gcd, x1, y1 = EncryptionSystem.extended_gcd(b, a % b)
+        x = y1
+        y = x1 - (a // b) * y1
+        return gcd, x, y
 
 
 if __name__ == "__main__":
