@@ -19,9 +19,10 @@ The algorithm will be developed using the Python programming language.
 ### Installation:
 To run this code, you need to have the following libraries installed:
 
-pip install cryptography pycryptodome
+pip install cryptography
 
 These commands will install the necessary dependencies to run the encryption system.
 
 ### Running the Code:
 To run the code, execute the main script `EncryptionSystem.py`. Follow the instructions provided by the program to choose encryption methods, input text, and keys, and perform encryption or decryption operations.
+
